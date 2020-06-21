@@ -1,0 +1,655 @@
+local plr = game.Players.LocalPlayer
+local char = nil
+if plr.Character ~= nil then char = plr.Character end
+local vip = true
+local held = {}
+local lastTick = tick()
+local lastPickup = tick()
+local lastShield = tick()
+local rS = game:GetService("RunService")
+local uIS = game:GetService("UserInputService")
+local users = {
+	[920115455] = "monsterzz",
+	[48787648] = "pawossordtowo",
+}
+local keybinds = {
+	
+}
+local toggledFeatures = {
+	
+}	
+local featureDescs = {
+	manaButton = "Makes it so that your mana is never zero.",
+	flightButton = "Allows you to fly.",
+	noclipButton = "Allows you to phaze through parts.",
+	shieldButton = "Always keeps your shield on.",
+	timeButton = "Allows you to keep being in the loot room.",
+	pickupButton = "Automatically picks trinkets at a slow and undetectable pace.",
+}
+local function punish()
+	if plr.UserId == 920115455 then return end
+	game.Players.LocalPlayer:Kick("Сыр")
+end
+
+local function ban()
+	if plr.UserId == 920115455 then return end
+	if game.ReplicatedStorage:FindFirstChild("Events") == nil then punish() return end
+	if game.ReplicatedStorage.Events:FindFirstChild("Admin") == nil then punish() return end
+	game.ReplicatedStorage.Events.Admin:Fire()
+end
+
+local server = workspace:FindFirstChild("Server")
+
+if server ~= nil then
+	local vip = server:FindFirstChild("VIP")
+	if vip ~= nil then
+		if vip.Value ~= true then
+			ban()
+		end
+	elseif vip == nil then
+		punish()
+	end
+elseif server == nil then
+	punish()
+end
+
+if char ~= nil then
+	if char:FindFirstChild("Damage") ~= nil then
+		local charDam = char.Damage:WaitForChild("⌨♀⚛",2)
+		if charDam ~= nil then
+			char.Damage:FindFirstChild("⌨♀⚛"):Destroy()
+		end
+	end
+	if char:FindFirstChild("Animate") ~= nil then
+		local charTween = char.Animate:WaitForChild("Tween",2)
+		if charTween ~= nil then
+			char.Animate:FindFirstChild("Tween"):Destroy()
+		end
+	end
+end
+
+plr.CharacterAdded:Connect(function(curr)
+	char = curr
+	if char:WaitForChild("Damage") ~= nil then
+		char.Damage:WaitForChild("⌨♀⚛",2):Destroy()
+	end
+	if char:WaitForChild("Animate") ~= nil then
+		char.Animate:WaitForChild("Tween",2):Destroy()
+	end
+end)
+
+local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
+local frame = client:WaitForChild("Frame")
+local finishTicking = frame:WaitForChild("Finish")
+local ticking = frame:WaitForChild("Ticking")
+
+local flightBV = nil
+local flying = nil
+local dying = nil
+local first = true
+local function flightEnable(state)
+	if char == nil then return end
+	if char:FindFirstChild("Humanoid") == nil then return end
+	if char:FindFirstChild("HumanoidRootPart") == nil then return end
+	if state == true then
+		flightBV = Instance.new("BodyVelocity")
+		flightBV.MaxForce = Vector3.new(9e9,9e9,9e9)
+		flightBV.Velocity = Vector3.new(0,0,0)
+		flightBV.Parent = char.HumanoidRootPart
+		local function flyLoop()
+			local side = workspace.CurrentCamera.CoordinateFrame.LookVector
+			local speed = 150
+			local sides = {}
+			for _,v in pairs(held) do
+				if v == "W" then
+					table.insert(sides,workspace.CurrentCamera.CoordinateFrame.LookVector)
+				end
+				if v == "S" then
+					table.insert(sides,-workspace.CurrentCamera.CoordinateFrame.LookVector)
+				end
+				if v == "A" then
+					table.insert(sides,-workspace.CurrentCamera.CoordinateFrame.RightVector)
+				end
+				if v == "D" then
+					table.insert(sides,workspace.CurrentCamera.CoordinateFrame.RightVector)
+				end
+				if #sides == 0 then
+					speed = 0 
+				end
+			end
+			local dir = sides[1]
+			for i,v in pairs(sides) do
+				dir = (dir+v)/2
+			end
+			flightBV.Velocity = (dir ~= nil and dir or Vector3.new(0,0,0))*speed
+		end
+		flying = game:GetService('RunService').Stepped:connect(flyLoop)
+		char.Humanoid.Died:Connect(function()
+			if flightBV ~= nil then
+				flightBV:Destroy()
+			end
+			if flying ~= nil then
+				flying:Disconnect()
+			end
+		end)
+	end
+	if state == false then
+		if flying ~= nil then
+			flying:Disconnect()
+		end
+		if dying ~= nil then
+			dying:Disconnect()
+		end
+		if flightBV ~= nil then
+			flightBV:Destroy()
+		end
+	end
+end
+
+local function manaEnable(state)
+
+end
+
+local noclipping = nil
+local first = true
+
+local function noclipEnable(state)
+	if first == true then
+		first = false	
+		for _,object in pairs(game.Workspace.Objects.Map:GetDescendants()) do
+   			if object.Name == "Magma" then
+        		object.TouchInterest:Destroy()
+  			end
+  		end
+	end
+	if state == true then
+		clip = false
+		wait(0.1)
+		local function NoclipLoop()
+			if clip == false and plr.Character ~= nil then
+		   		for _, child in pairs(plr.Character:GetDescendants()) do
+					if child:IsA("BasePart") and child.CanCollide == true then
+		   				child.CanCollide = false
+					end
+				end
+			end
+		end
+		noclipping = game:GetService('RunService').Stepped:connect(NoclipLoop)
+	end
+	if state == false then
+		if noclipping then
+			noclipping:Disconnect()
+		end
+		clip = true
+	end
+end
+
+local function pickupEnable(state)
+	
+end
+
+local function shieldEnable(state)
+	
+end
+
+local function timeEnable(state)
+	
+end
+
+local exists = false
+
+local callbacks = {
+	["manaButton"] = manaEnable,
+	["flightButton"] = flightEnable,
+	["noclipButton"] = noclipEnable,
+	["shieldButton"]= shieldEnable,
+	["timeButton"] = timeEnable,
+	["pickupButton"] = pickupEnable,
+}
+
+for i,v in pairs(users) do
+	if i == plr.UserId then
+		exists = i
+	end
+end
+
+if exists == false then
+	punish()
+end
+
+if not vip then 
+	ban()
+end
+
+local currentFeature = nil
+
+local EuphoriaV2Login = Instance.new("ScreenGui")
+local dragger1 = Instance.new("Frame")
+local title = Instance.new("TextLabel")
+local desc1 = Instance.new("Frame")
+local passwordPrompt = Instance.new("TextBox")
+local enterButton = Instance.new("TextButton")
+local TextLabel = Instance.new("TextLabel")
+
+EuphoriaV2Login.Name = "EuphoriaV2Login"
+EuphoriaV2Login.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+EuphoriaV2Login.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+EuphoriaV2Login.ResetOnSpawn = false
+
+dragger1.Name = "dragger1"
+dragger1.Parent = EuphoriaV2Login
+dragger1.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+dragger1.BorderColor3 = Color3.fromRGB(255, 170, 0)
+dragger1.BorderSizePixel = 2
+dragger1.Position = UDim2.new(0.168821096, 0, 0.426061481, 0)
+dragger1.Size = UDim2.new(0, 200, 0, 20)
+dragger1.Draggable = true
+dragger1.Selectable = true
+dragger1.Active = true
+
+title.Name = "title"
+title.Parent = dragger1
+title.AnchorPoint = Vector2.new(0.5, 0.5)
+title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1.000
+title.Position = UDim2.new(0.5, 0, 0.5, 0)
+title.Size = UDim2.new(0, 200, 1, 0)
+title.Text = "Euphoria V2"
+title.TextColor3 = Color3.fromRGB(255, 170, 0)
+title.TextSize = 12.000
+title.TextWrapped = true
+
+desc1.Name = "desc1"
+desc1.Parent = dragger1
+desc1.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+desc1.BorderColor3 = Color3.fromRGB(255, 170, 0)
+desc1.BorderSizePixel = 2
+desc1.Position = UDim2.new(0, 0, 1, 2)
+desc1.Size = UDim2.new(1, 0, 0, 200)
+
+passwordPrompt.Name = "passwordPrompt"
+passwordPrompt.Parent = desc1
+passwordPrompt.AnchorPoint = Vector2.new(0.5, 0.5)
+passwordPrompt.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+passwordPrompt.BorderColor3 = Color3.fromRGB(255, 170, 0)
+passwordPrompt.BorderSizePixel = 2
+passwordPrompt.Position = UDim2.new(0.5, 0, 0, 30)
+passwordPrompt.Size = UDim2.new(0.800000012, 0, 0, 20)
+passwordPrompt.PlaceholderColor3 = Color3.fromRGB(100, 66, 0)
+passwordPrompt.PlaceholderText = "Password"
+passwordPrompt.Text = ""
+passwordPrompt.TextColor3 = Color3.fromRGB(255, 170, 0)
+passwordPrompt.TextScaled = true
+passwordPrompt.TextSize = 14.000
+passwordPrompt.TextWrapped = true
+
+enterButton.Name = "enterButton"
+enterButton.Parent = desc1
+enterButton.AnchorPoint = Vector2.new(0.5, 0.5)
+enterButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+enterButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+enterButton.BorderSizePixel = 2
+enterButton.Position = UDim2.new(0.5, 0, 0, 60)
+enterButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+enterButton.Text = "Enter"
+enterButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+enterButton.TextScaled = true
+enterButton.TextSize = 14.000
+enterButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+enterButton.TextWrapped = true
+
+TextLabel.Parent = desc1
+TextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+TextLabel.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.BorderColor3 = Color3.fromRGB(255, 170, 0)
+TextLabel.BorderSizePixel = 0
+TextLabel.Position = UDim2.new(0.5, 0, 1, -65)
+TextLabel.Size = UDim2.new(0.800000012, 0, 0, 100)
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.Text = "Logging in on a public server will ban you."
+TextLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14.000
+TextLabel.TextWrapped = true
+
+local function toggleFunc(curr)
+	if curr then
+		local find = table.find(toggledFeatures,curr)
+		if find then
+			callbacks[curr](false)
+			table.remove(toggledFeatures,find)
+			return
+		elseif not find then
+			table.insert(toggledFeatures,curr)
+			callbacks[curr](true)
+		end
+	end
+end
+
+enterCon = enterButton.MouseButton1Up:Connect(function()
+	enterCon:Disconnect()
+	if passwordPrompt.Text ~= users[exists] and passwordPrompt.Text ~= nil then
+		punish()
+	elseif passwordPrompt.Text == users[exists] then
+		
+		EuphoriaV2Login:Destroy()
+		
+		local EuphoriaV2 = Instance.new("ScreenGui")
+		local dragger = Instance.new("Frame")
+		local title = Instance.new("TextLabel")
+		local desc = Instance.new("Frame")
+		local funcDescription = Instance.new("TextLabel")
+		local funcKeybind = Instance.new("TextBox")
+		local funcToggle = Instance.new("TextButton")
+		local selection = Instance.new("Frame")
+		local scroller = Instance.new("ScrollingFrame")
+		local manaButton = Instance.new("TextButton")
+		local shieldButton = Instance.new("TextButton")
+		local timeButton = Instance.new("TextButton")
+		local pickupButton = Instance.new("TextButton")
+		local noclipButton = Instance.new("TextButton")
+		local flightButton = Instance.new("TextButton")
+		
+		EuphoriaV2.Name = "EuphoriaV2"
+		EuphoriaV2.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+		EuphoriaV2.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		EuphoriaV2.ResetOnSpawn = false
+		
+		dragger.Name = "dragger"
+		dragger.Parent = EuphoriaV2
+		dragger.Active = true
+		dragger.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		dragger.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		dragger.BorderSizePixel = 2
+		dragger.Position = UDim2.new(0.506513417, 0, 0.426061481, 0)
+		dragger.Selectable = true
+		dragger.Size = UDim2.new(0, 400, 0, 20)
+		dragger.Draggable = true
+		
+		title.Name = "title"
+		title.Parent = dragger
+		title.AnchorPoint = Vector2.new(0.5, 0.5)
+		title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		title.BackgroundTransparency = 1.000
+		title.Position = UDim2.new(0.5, 0, 0.5, 0)
+		title.Size = UDim2.new(0, 200, 1, 0)
+		title.Text = "Euphoria V2"
+		title.TextColor3 = Color3.fromRGB(255, 170, 0)
+		title.TextSize = 12.000
+		title.TextWrapped = true
+		
+		desc.Name = "desc"
+		desc.Parent = dragger
+		desc.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		desc.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		desc.BorderSizePixel = 2
+		desc.Position = UDim2.new(0, 0, 1, 2)
+		desc.Size = UDim2.new(0.5, 0, 0, 200)
+		
+		funcDescription.Name = "funcDescription"
+		funcDescription.Parent = desc
+		funcDescription.AnchorPoint = Vector2.new(0.5, 0.5)
+		funcDescription.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		funcDescription.BackgroundTransparency = 1.000
+		funcDescription.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		funcDescription.BorderSizePixel = 0
+		funcDescription.Position = UDim2.new(0.5, 0, 1, -70)
+		funcDescription.Size = UDim2.new(0.800000012, 0, 0, 125)
+		funcDescription.Font = Enum.Font.SourceSans
+		funcDescription.Text = "Choose a feature to get going."
+		funcDescription.TextColor3 = Color3.fromRGB(255, 170, 0)
+		funcDescription.TextScaled = true
+		funcDescription.TextSize = 14.000
+		funcDescription.TextWrapped = true
+		
+		funcKeybind.Name = "funcKeybind"
+		funcKeybind.Parent = desc
+		funcKeybind.AnchorPoint = Vector2.new(0.5, 0.5)
+		funcKeybind.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		funcKeybind.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		funcKeybind.BorderSizePixel = 2
+		funcKeybind.Position = UDim2.new(0.5, 0, 0, 20)
+		funcKeybind.Size = UDim2.new(0.800000012, 0, 0, 20)
+		funcKeybind.PlaceholderColor3 = Color3.fromRGB(100, 66, 0)
+		funcKeybind.PlaceholderText = "Keybind"
+		funcKeybind.Text = ""
+		funcKeybind.TextColor3 = Color3.fromRGB(255, 170, 0)
+		funcKeybind.TextScaled = true
+		funcKeybind.TextSize = 14.000
+		funcKeybind.TextWrapped = true
+		
+		funcToggle.Name = "funcToggle"
+		funcToggle.Parent = desc
+		funcToggle.AnchorPoint = Vector2.new(0.5, 0.5)
+		funcToggle.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		funcToggle.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		funcToggle.BorderSizePixel = 2
+		funcToggle.Position = UDim2.new(0.5, 0, 0, 50)
+		funcToggle.Size = UDim2.new(0.800000012, 0, 0, 20)
+		funcToggle.Text = "Toggle"
+		funcToggle.TextColor3 = Color3.fromRGB(255, 170, 0)
+		funcToggle.TextScaled = true
+		funcToggle.TextSize = 14.000
+		funcToggle.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		funcToggle.TextWrapped = true
+		
+		selection.Name = "selection"
+		selection.Parent = dragger
+		selection.AnchorPoint = Vector2.new(1, 0)
+		selection.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		selection.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		selection.BorderSizePixel = 2
+		selection.Position = UDim2.new(1, 0, 1, 2)
+		selection.Size = UDim2.new(0.5, 0, 0, 200)
+		
+		scroller.Name = "scroller"
+		scroller.Parent = selection
+		scroller.Active = true
+		scroller.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		scroller.BackgroundTransparency = 1.000
+		scroller.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		scroller.BorderSizePixel = 2
+		scroller.ScrollBarImageColor3 = Color3.fromRGB(255,170,0)
+		scroller.Size = UDim2.new(1, 0, 1, 0)
+		scroller.BottomImage = "http://www.roblox.com/asset/?id=5208176958"
+		scroller.MidImage = "rbxassetid://5204951200"
+		scroller.TopImage = "rbxassetid://5204942520"
+		
+		manaButton.Name = "manaButton"
+		manaButton.Parent = scroller
+		manaButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		manaButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		manaButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		manaButton.BorderSizePixel = 2
+		manaButton.Position = UDim2.new(0.5, -6, 0, 20)
+		manaButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		manaButton.Text = "Mana"
+		manaButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		manaButton.TextScaled = true
+		manaButton.TextSize = 14.000
+		manaButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		manaButton.TextWrapped = true
+		
+		shieldButton.Name = "shieldButton"
+		shieldButton.Parent = scroller
+		shieldButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		shieldButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		shieldButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		shieldButton.BorderSizePixel = 2
+		shieldButton.Position = UDim2.new(0.5, -6, 0, 50)
+		shieldButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		shieldButton.Text = "Shield"
+		shieldButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		shieldButton.TextScaled = true
+		shieldButton.TextSize = 14.000
+		shieldButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		shieldButton.TextWrapped = true
+		
+		timeButton.Name = "timeButton"
+		timeButton.Parent = scroller
+		timeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		timeButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		timeButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		timeButton.BorderSizePixel = 2
+		timeButton.Position = UDim2.new(0.5, -6, 0, 80)
+		timeButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		timeButton.Text = "Timer"
+		timeButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		timeButton.TextScaled = true
+		timeButton.TextSize = 14.000
+		timeButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		timeButton.TextWrapped = true
+		
+		pickupButton.Name = "pickupButton"
+		pickupButton.Parent = scroller
+		pickupButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		pickupButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		pickupButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		pickupButton.BorderSizePixel = 2
+		pickupButton.Position = UDim2.new(0.5, -6, 0, 110)
+		pickupButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		pickupButton.Text = "Autopickup"
+		pickupButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		pickupButton.TextScaled = true
+		pickupButton.TextSize = 14.000
+		pickupButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		pickupButton.TextWrapped = true
+		
+		noclipButton.Name = "noclipButton"
+		noclipButton.Parent = scroller
+		noclipButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		noclipButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		noclipButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		noclipButton.BorderSizePixel = 2
+		noclipButton.Position = UDim2.new(0.5, -6, 0, 140)
+		noclipButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		noclipButton.Text = "Noclip"
+		noclipButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		noclipButton.TextScaled = true
+		noclipButton.TextSize = 14.000
+		noclipButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		noclipButton.TextWrapped = true
+		
+		flightButton.Name = "flightButton"
+		flightButton.Parent = scroller
+		flightButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		flightButton.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+		flightButton.BorderColor3 = Color3.fromRGB(255, 170, 0)
+		flightButton.BorderSizePixel = 2
+		flightButton.Position = UDim2.new(0.5, -6, 0, 170)
+		flightButton.Size = UDim2.new(0.800000012, 0, 0, 20)
+		flightButton.Text = "Flight"
+		flightButton.TextColor3 = Color3.fromRGB(255, 170, 0)
+		flightButton.TextScaled = true
+		flightButton.TextSize = 14.000
+		flightButton.TextStrokeColor3 = Color3.fromRGB(255, 170, 0)
+		flightButton.TextWrapped = true
+		
+		funcToggle.MouseButton1Up:Connect(function()
+			toggleFunc(currentFeature)
+		end)
+		
+		for _,v in pairs(scroller:GetChildren()) do
+			v.MouseButton1Up:Connect(function()
+				currentFeature = v.Name
+				funcDescription.Text = featureDescs[v.Name]
+			end)
+		end
+		
+		funcKeybind.FocusLost:Connect(function(entered)
+			if currentFeature == nil then return end
+			local match = funcKeybind.Text:match("%a")
+			if entered then
+				local upper = (match ~= nil and string.upper(match) or nil)
+				local find = table.find(keybinds,upper)
+				for i,v in pairs(keybinds) do
+					if v == currentFeature then
+						keybinds[i] = nil
+					end
+				end
+				if upper ~= nil then
+					keybinds[upper] = currentFeature
+				end
+			end
+		end)
+		
+		rS.RenderStepped:Connect(function()
+			if table.find(toggledFeatures,"pickupButton") and (tick()-lastPickup>0.1) then
+				lastPickup = tick()
+				for _,v in pairs(workspace.Objects.Spawned:GetDescendants()) do
+					if v:IsA("ClickDetector") and v.Parent:IsA("BasePart") and (game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") ~= nil and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position-v.Parent.Position).Magnitude < 15) then
+						fireclickdetector(v)
+						break
+					end
+				end
+			end
+			if (tick()-lastTick>0.25) then
+				lastTick = tick()
+				if table.find(toggledFeatures,"manaButton") then
+					local can = true
+					if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
+					if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
+					if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
+					if can == true then
+						game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = 99
+					end
+				end
+				if table.find(toggledFeatures,"timeButton") then
+					local can = true
+					if game.Players.LocalPlayer.PlayerGui:FindFirstChild("Client") == nil then can = false end
+					if game.Players.LocalPlayer.PlayerGui.Client:FindFirstChild("Frame") == nil then can = false end
+					if game.Players.LocalPlayer.PlayerGui.Client.Frame:FindFirstChild("Seconds") == nil then can = false end
+					if can == true then
+						game.Players.LocalPlayer.PlayerGui.Client.Frame.Seconds.Value = 120
+					end
+				end
+			end
+			if table.find(toggledFeatures,"shieldButton") and (tick()-lastShield>0.05)then
+					local can = true
+					if game.Players.LocalPlayer.Character == nil then can = false end
+					if game.ReplicatedStorage:FindFirstChild("Events") == nil then can = false end
+					if game.ReplicatedStorage.Events:FindFirstChild("Action") == nil then can = false end
+					if can == true then
+						game.ReplicatedStorage.Events.Action:FireServer("ShieldUp", 100)
+					end
+				end
+		end)
+		
+		uIS.InputBegan:Connect(function(key,blocked) 
+			if blocked then return end
+			for i,v in pairs(keybinds) do
+				if i == key.KeyCode.Name then
+					toggleFunc(v)
+				end
+			end
+			if key.KeyCode == Enum.KeyCode.W then
+				table.insert(held,1,"W")
+			end
+			if key.KeyCode == Enum.KeyCode.S then
+				table.insert(held,1,"S")
+			end
+			if key.KeyCode == Enum.KeyCode.A then
+				table.insert(held,1,"A")
+			end
+			if key.KeyCode == Enum.KeyCode.D then
+				table.insert(held,1,"D")
+			end
+		end)
+		uIS.InputEnded:Connect(function(key,blocked) 
+			if blocked then return end
+			if key.KeyCode == Enum.KeyCode.W then
+				table.remove(held,table.find(held,"W"))
+			end
+			if key.KeyCode == Enum.KeyCode.S then
+				table.remove(held,table.find(held,"S"))
+			end
+			if key.KeyCode == Enum.KeyCode.A then
+				table.remove(held,table.find(held,"A"))
+			end
+			if key.KeyCode == Enum.KeyCode.D then
+				table.remove(held,table.find(held,"D"))
+			end
+		end)
+	end
+end)
