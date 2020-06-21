@@ -560,6 +560,17 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 		for _,v in pairs(scroller:GetChildren()) do
 			v.MouseButton1Up:Connect(function()
 				currentFeature = v.Name
+				funcKeybind.Text = ""
+				local find = nil
+				for i,v in pairs(keybinds) do
+					if (v == currentFeature) then
+						find = i
+						break
+					end
+				end
+				if find ~= nil then
+					funcKeybind.PlaceholderText = ""
+				end
 				funcDescription.Text = featureDescs[v.Name]
 			end)
 		end
