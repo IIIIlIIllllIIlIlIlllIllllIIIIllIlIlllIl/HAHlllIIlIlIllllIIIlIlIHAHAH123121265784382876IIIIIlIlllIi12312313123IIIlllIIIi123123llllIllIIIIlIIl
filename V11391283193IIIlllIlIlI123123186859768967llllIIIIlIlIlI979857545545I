@@ -28,12 +28,12 @@ local featureDescs = {
 	pickupButton = "Automatically picks trinkets at a slow and undetectable pace.",
 }
 local function punish()
-	if plr.UserId == 920115455 then return end
+	if plr.UserId == 920115455 then print("Kick attempt.")return end
 	game.Players.LocalPlayer:Kick("Сыр")
 end
 
 local function ban()
-	if plr.UserId == 920115455 then return end
+	if plr.UserId == 920115455 then print("Ban attempt.")return end
 	if game.ReplicatedStorage:FindFirstChild("Events") == nil then punish() return end
 	if game.ReplicatedStorage.Events:FindFirstChild("Admin") == nil then punish() return end
 	game.ReplicatedStorage.Events.Admin:Fire()
@@ -55,13 +55,13 @@ elseif server == nil then
 end
 
 if char ~= nil then
-	if char:FindFirstChild("Damage") ~= nil then
+	if char:WaitForChild("Damage",2) ~= nil then
 		local charDam = char.Damage:WaitForChild("⌨♀⚛",2)
 		if charDam ~= nil then
 			char.Damage:FindFirstChild("⌨♀⚛"):Destroy()
 		end
 	end
-	if char:FindFirstChild("Animate") ~= nil then
+	if char:WaitForChild("Animate",2) ~= nil then
 		local charTween = char.Animate:WaitForChild("Tween",2)
 		if charTween ~= nil then
 			char.Animate:FindFirstChild("Tween"):Destroy()
@@ -71,11 +71,17 @@ end
 
 plr.CharacterAdded:Connect(function(curr)
 	char = curr
-	if char:WaitForChild("Damage") ~= nil then
-		char.Damage:WaitForChild("⌨♀⚛",2):Destroy()
+	if char:WaitForChild("Damage",2) ~= nil then
+		local charDam = char.Damage:WaitForChild("⌨♀⚛",2)
+		if charDam ~= nil then
+			char.Damage:FindFirstChild("⌨♀⚛"):Destroy()
+		end
 	end
-	if char:WaitForChild("Animate") ~= nil then
-		char.Animate:WaitForChild("Tween",2):Destroy()
+	if char:WaitForChild("Animate",2) ~= nil then
+		local charTween = char.Animate:WaitForChild("Tween",2)
+		if charTween ~= nil then
+			char.Animate:FindFirstChild("Tween"):Destroy()
+		end
 	end
 end)
 
