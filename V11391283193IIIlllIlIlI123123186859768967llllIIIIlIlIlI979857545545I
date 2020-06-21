@@ -569,7 +569,9 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 					end
 				end
 				if find ~= nil then
-					funcKeybind.PlaceholderText = ""
+					funcKeybind.PlaceholderText = find
+				elseif find == nil then
+					funcKeybind.PlaceholderText = "Keybind"
 				end
 				funcDescription.Text = featureDescs[v.Name]
 			end)
