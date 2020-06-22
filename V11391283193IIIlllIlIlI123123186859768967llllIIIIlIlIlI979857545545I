@@ -591,6 +591,8 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 				end
 				if upper ~= nil then
 					keybinds[upper] = currentFeature
+					funcKeybind.PlaceholderText = upper
+					funcKeybind.Text = ""
 				end
 			end
 		end)
