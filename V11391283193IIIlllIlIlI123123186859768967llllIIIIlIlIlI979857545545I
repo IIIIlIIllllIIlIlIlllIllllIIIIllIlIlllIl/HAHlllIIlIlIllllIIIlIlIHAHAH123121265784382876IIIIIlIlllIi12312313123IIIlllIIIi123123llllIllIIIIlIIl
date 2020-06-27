@@ -1,6 +1,6 @@
 local plr = game.Players.LocalPlayer
 local char = nil
-local crrs = game.PlaceId == 2087070304 and true or false
+local crrs = (game.PlaceId == 2087070304 and true) or false
 if plr.Character ~= nil then char = plr.Character end
 local vip = true
 local held = {}
