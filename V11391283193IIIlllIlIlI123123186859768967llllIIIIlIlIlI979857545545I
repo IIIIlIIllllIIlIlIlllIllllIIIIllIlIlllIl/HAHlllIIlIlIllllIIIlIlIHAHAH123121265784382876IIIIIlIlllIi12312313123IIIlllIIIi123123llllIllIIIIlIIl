@@ -1,5 +1,6 @@
 local plr = game.Players.LocalPlayer
 local char = nil
+local crrs = game.PlaceId == 2087070304 and true or false
 if plr.Character ~= nil then char = plr.Character end
 local vip = true
 local held = {}
@@ -87,10 +88,12 @@ plr.CharacterAdded:Connect(function(curr)
 	end
 end)
 
+if crrs then
 local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
 local frame = client:WaitForChild("Frame")
 local finishTicking = frame:WaitForChild("Finish")
 local ticking = frame:WaitForChild("Ticking")
+end
 
 local flightBV = nil
 local flying = nil
