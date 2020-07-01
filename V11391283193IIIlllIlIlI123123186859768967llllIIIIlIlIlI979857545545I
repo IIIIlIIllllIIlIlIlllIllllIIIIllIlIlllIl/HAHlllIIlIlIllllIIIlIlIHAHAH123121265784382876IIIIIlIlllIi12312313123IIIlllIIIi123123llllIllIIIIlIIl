@@ -7,6 +7,7 @@ local lastTick = tick()
 local lastPickup = tick()
 local lastShield = tick()
 local desiredMana = 99
+local currentTool = nil
 local snapToggled = false
 local rS = game:GetService("RunService")
 local uIS = game:GetService("UserInputService")
@@ -81,6 +82,8 @@ if char ~= nil then
 end
 
 plr.CharacterAdded:Connect(function(curr)
+	currentTool = nil
+	desiredMana = 99
 	char = curr
 	if char:WaitForChild("Damage",2) ~= nil then
 		local charDam = char.Damage:WaitForChild("⌨♀⚛",2)
@@ -95,8 +98,6 @@ plr.CharacterAdded:Connect(function(curr)
 		end
 	end
 end)
-
-local currentTool = nil
 
 local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
 local frame = client:WaitForChild("Frame")
@@ -633,7 +634,7 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			if (tick()-lastTick>0.25) then
 				lastTick = tick()
 				if table.find(toggledFeatures,"manaButton") then
-					setMana(desiredMana)
+					pcall(setMana(desiredMana))
 				end
 				if table.find(toggledFeatures,"timeButton") then
 					local can = true
@@ -662,10 +663,10 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			currentTool = spells[child.Name]
 			if currentTool[1] ~= nil and snapToggled == false then
 				desiredMana = currentTool[1]
-				setMana(desiredMana)
+				pcall(setMana(desiredMana))
 			elseif currentTool[2] ~= nil and snapToggled == true then
 				desiredMana = currentTool[2]
-				setMana(desiredMana)
+				pcall(setMana(desiredMana))
 			end
 		end
 	end
@@ -684,7 +685,7 @@ end)
 					if currentTool ~= nil then
 						if currentTool[2] ~= nil then
 							desiredMana = currentTool[2]
-							setMana(desiredMana)
+							pcall(setMana(desiredMana))
 						end
 					end
 				else
@@ -692,7 +693,7 @@ end)
 					if currentTool ~= nil then
 						if currentTool[1] ~= nil then
 							desiredMana = currentTool[1]
-							setMana(desiredMana)
+							pcall(setMana(desiredMana))
 						end
 					end
 				end
