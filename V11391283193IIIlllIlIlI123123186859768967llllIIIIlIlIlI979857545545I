@@ -7,6 +7,7 @@ local lastTick = tick()
 local lastPickup = tick()
 local lastShield = tick()
 local desiredMana = 99
+local snapToggled = false
 local rS = game:GetService("RunService")
 local uIS = game:GetService("UserInputService")
 local users = {
@@ -96,14 +97,6 @@ plr.CharacterAdded:Connect(function(curr)
 end)
 
 local currentTool = nil
-
-char.ChildAdded:Connect(function(child)
-	if child:IsA("Tool") then
-		if spells[child.Name] ~= nil then
-			currentTool = spells[child.Name]
-		end
-	end
-end)
 
 local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
 local frame = client:WaitForChild("Frame")
@@ -662,6 +655,21 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 				end
 		end)
 		
+		char.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+			if spells[child.Name] ~= nil then
+			currentTool = spells[child.Name]
+			if currentTool[1] ~= nil and snapToggled == false then
+				desiredMana = currentTool[1]
+				setMana(desiredMana)
+			elseif currentTool[2] ~= nil and snapToggled == true then
+				desiredMana = currentTool[2]
+				setMana(desiredMana)
+			end
+		end
+	end
+end)
+		
 		uIS.InputBegan:Connect(function(key,blocked) 
 			if blocked then return end
 				for i,v in pairs(keybinds) do
@@ -669,19 +677,22 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 						toggleFunc(v)
 					end
 				end
-			if key.UserInputType == Enum.UserInputType.MouseButton1 then
-				if currentTool ~= nil then
-					if currentTool[1] ~= nil then
-						desiredMana = currentTool[1]
-						setMana(desiredMana)
+			if key.KeyCode == Enum.KeyCode.LeftAlt then
+				if snapToggled == false then
+					snapToggled = true
+					if currentTool ~= nil then
+						if currentTool[2] ~= nil then
+							desiredMana = currentTool[2]
+							setMana(desiredMana)
+						end
 					end
-				end
-			end
-			if key.UserInputType == Enum.UserInputType.MouseButton2 then
-				if currentTool ~= nil then
-					if currentTool[2] ~= nil then
-						desiredMana = currentTool[2]
-						setMana(desiredMana)
+				else
+					snapToggled = false
+					if currentTool ~= nil then
+						if currentTool[1] ~= nil then
+							desiredMana = currentTool[1]
+							setMana(desiredMana)
+						end
 					end
 				end
 			end
