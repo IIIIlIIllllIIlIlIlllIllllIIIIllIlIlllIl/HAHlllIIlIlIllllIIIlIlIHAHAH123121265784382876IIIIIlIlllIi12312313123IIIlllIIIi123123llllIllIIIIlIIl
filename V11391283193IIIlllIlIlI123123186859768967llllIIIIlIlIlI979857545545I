@@ -611,14 +611,16 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 		end)
 		
 		local function setMana(amt)
-			local can = true
-			if game.Players.LocalPlayer.Character == nil then can = false end
-			if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
-			if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
-			if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
-			if can == true then
-				game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
-			end
+			pcall(function()
+				local can = true
+				if game.Players.LocalPlayer.Character == nil then can = false end
+				if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
+				if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
+				if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
+				if can == true then
+					game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
+				end
+			end)
 		end
 		
 		rS.RenderStepped:Connect(function()
@@ -634,7 +636,7 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			if (tick()-lastTick>0.25) then
 				lastTick = tick()
 				if table.find(toggledFeatures,"manaButton") then
-					pcall(setMana(desiredMana))
+					setMana(desiredMana)
 				end
 				if table.find(toggledFeatures,"timeButton") then
 					local can = true
@@ -663,10 +665,10 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			currentTool = spells[child.Name]
 			if currentTool[1] ~= nil and snapToggled == false then
 				desiredMana = currentTool[1]
-				pcall(setMana(desiredMana))
+				setMana(desiredMana)
 			elseif currentTool[2] ~= nil and snapToggled == true then
 				desiredMana = currentTool[2]
-				pcall(setMana(desiredMana))
+				setMana(desiredMana)
 			end
 		end
 	end
@@ -685,7 +687,7 @@ end)
 					if currentTool ~= nil then
 						if currentTool[2] ~= nil then
 							desiredMana = currentTool[2]
-							pcall(setMana(desiredMana))
+							setMana(desiredMana)
 						end
 					end
 				else
@@ -693,7 +695,7 @@ end)
 					if currentTool ~= nil then
 						if currentTool[1] ~= nil then
 							desiredMana = currentTool[1]
-							pcall(setMana(desiredMana))
+							setMana(desiredMana)
 						end
 					end
 				end
