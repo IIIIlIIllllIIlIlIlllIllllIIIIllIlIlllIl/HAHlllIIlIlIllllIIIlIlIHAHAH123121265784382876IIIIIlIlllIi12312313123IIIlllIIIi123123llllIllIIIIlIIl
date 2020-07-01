@@ -611,6 +611,7 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 		
 		local function setMana(amt)
 			local can = true
+			if game.Players.Character == nil then can = false end
 			if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
 			if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
 			if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
