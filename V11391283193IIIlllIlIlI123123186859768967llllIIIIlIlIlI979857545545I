@@ -22,7 +22,7 @@ local spells = {
 	Ignis = {99,50},
 	Armis = {50,80},
 	Celeritas = {75,75},
-	Tenebris = {100,nil},
+	Tenebris = {99,nil},
 }
 local keybinds = {
 	
