@@ -7,6 +7,7 @@ local lastTick = tick()
 local lastPickup = tick()
 local lastShield = tick()
 local desiredMana = 99
+local snapTurn = false
 local rS = game:GetService("RunService")
 local uIS = game:GetService("UserInputService")
 local users = {
@@ -21,7 +22,7 @@ local spells = {
 	Ignis = {99,50},
 	Armis = {50,80},
 	Celeritas = {75,75},
-	Tenebris = {100,nil}
+	Tenebris = {100,nil},
 }
 local keybinds = {
 	
@@ -98,9 +99,14 @@ end)
 local currentTool = nil
 
 char.ChildAdded:Connect(function(child)
-	if child.ClassName:IsA("Tool") then
+	if child:IsA("Tool") then
 		if spells[child.Name] ~= nil then
 			currentTool = spells[child.Name]
+			if currentTool[1] ~= nil and snapTurn == false then
+				desiredMana = currentTool[1]
+			elseif currentTool[2] ~= nil and snapTurn == true then
+				desiredMana = currentTool[2]
+			end
 		end
 	end
 end)
@@ -681,6 +687,19 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			for i,v in pairs(keybinds) do
 				if i == key.KeyCode.Name then
 					toggleFunc(v)
+				end
+			end
+			if key.KeyCode == Enum.KeyCode.LeftAlt then
+				if snapTurn == false then
+					snapTurn = true
+					if currentTool[2] ~= nil then
+						desiredMana = currentTool[2]
+					end
+				else
+					snapTurn = false
+					if currentTool[1] ~= nil then
+						desiredMana = currentTool[1]
+					end
 				end
 			end
 			if key.KeyCode == Enum.KeyCode.W then
