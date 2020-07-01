@@ -7,7 +7,6 @@ local lastTick = tick()
 local lastPickup = tick()
 local lastShield = tick()
 local desiredMana = 99
-local snapTurn = false
 local rS = game:GetService("RunService")
 local uIS = game:GetService("UserInputService")
 local users = {
@@ -102,29 +101,6 @@ char.ChildAdded:Connect(function(child)
 	if child:IsA("Tool") then
 		if spells[child.Name] ~= nil then
 			currentTool = spells[child.Name]
-			if currentTool[1] ~= nil and snapTurn == false then
-				desiredMana = currentTool[1]
-			elseif currentTool[2] ~= nil and snapTurn == true then
-				desiredMana = currentTool[2]
-			end
-		end
-	end
-end)
-
-uIS.InputBegan:Connect(function(key,busy)
-	if busy then return end
-	if key.UserInputType == Enum.UserInputType.MouseButton1 then
-		if currentTool ~= nil then
-			if currentTool[1] ~= nil then
-				desiredMana = currentTool[1]
-			end
-		end
-	end
-	if key.UserInputType == Enum.UserInputType.MouseButton2 then
-		if currentTool ~= nil then
-			if currentTool[2] ~= nil then
-				desiredMana = currentTool[2]
-			end
 		end
 	end
 end)
@@ -640,6 +616,16 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			end
 		end)
 		
+		local function setMana(amt)
+			local can = true
+			if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
+			if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
+			if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
+			if can == true then
+				game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
+			end
+		end
+		
 		rS.RenderStepped:Connect(function()
 			if table.find(toggledFeatures,"pickupButton") and (tick()-lastPickup>0.1) then
 				lastPickup = tick()
@@ -653,13 +639,7 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			if (tick()-lastTick>0.25) then
 				lastTick = tick()
 				if table.find(toggledFeatures,"manaButton") then
-					local can = true
-					if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
-					if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
-					if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
-					if can == true then
-						game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
-					end
+					setMana(desiredMana)
 				end
 				if table.find(toggledFeatures,"timeButton") then
 					local can = true
@@ -684,21 +664,24 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 		
 		uIS.InputBegan:Connect(function(key,blocked) 
 			if blocked then return end
-			for i,v in pairs(keybinds) do
-				if i == key.KeyCode.Name then
-					toggleFunc(v)
-				end
-			end
-			if key.KeyCode == Enum.KeyCode.LeftAlt then
-				if snapTurn == false then
-					snapTurn = true
-					if currentTool[2] ~= nil then
-						desiredMana = currentTool[2]
+				for i,v in pairs(keybinds) do
+					if i == key.KeyCode.Name then
+						toggleFunc(v)
 					end
-				else
-					snapTurn = false
+				end
+			if key.UserInputType == Enum.UserInputType.MouseButton1 then
+				if currentTool ~= nil then
 					if currentTool[1] ~= nil then
 						desiredMana = currentTool[1]
+						setMana(desiredMana)
+					end
+				end
+			end
+			if key.UserInputType == Enum.UserInputType.MouseButton2 then
+				if currentTool ~= nil then
+					if currentTool[2] ~= nil then
+						desiredMana = currentTool[2]
+						setMana(desiredMana)
 					end
 				end
 			end
