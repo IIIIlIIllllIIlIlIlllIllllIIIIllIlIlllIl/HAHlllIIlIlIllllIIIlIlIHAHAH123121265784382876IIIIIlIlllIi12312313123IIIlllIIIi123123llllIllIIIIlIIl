@@ -1,12 +1,12 @@
 local plr = game.Players.LocalPlayer
 local char = nil
-local crrs = (game.PlaceId == 2087070304 and true) or false
 if plr.Character ~= nil then char = plr.Character end
 local vip = true
 local held = {}
 local lastTick = tick()
 local lastPickup = tick()
 local lastShield = tick()
+local desiredMana = 99
 local rS = game:GetService("RunService")
 local uIS = game:GetService("UserInputService")
 local users = {
@@ -15,6 +15,13 @@ local users = {
 	[65172723] = "obamaloversexass",
 	[24713284] = "bigsexycoolman173",
 	[1643545077] = "Redkewl12344",
+}
+local spells = {
+	Gelidus = {99,99},
+	Ignis = {99,50},
+	Armis = {50,80},
+	Celeritas = {75,75},
+	Tenebris = {100,nil}
 }
 local keybinds = {
 	
@@ -88,12 +95,38 @@ plr.CharacterAdded:Connect(function(curr)
 	end
 end)
 
-if crrs then
+local currentTool = nil
+
+char.ChildAdded:Connect(function(child)
+	if child.ClassName:IsA("Tool") then
+		if spells[child.Name] ~= nil then
+			currentTool = spells[child.Name]
+		end
+	end
+end)
+
+uIS.InputBegan:Connect(function(key,busy)
+	if busy then return end
+	if key.UserInputType == Enum.UserInputType.MouseButton1 then
+		if currentTool ~= nil then
+			if currentTool[1] ~= nil then
+				desiredMana = currentTool[1]
+			end
+		end
+	end
+	if key.UserInputType == Enum.UserInputType.MouseButton2 then
+		if currentTool ~= nil then
+			if currentTool[2] ~= nil then
+				desiredMana = currentTool[2]
+			end
+		end
+	end
+end)
+
 local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
 local frame = client:WaitForChild("Frame")
 local finishTicking = frame:WaitForChild("Finish")
 local ticking = frame:WaitForChild("Ticking")
-end
 
 local flightBV = nil
 local flying = nil
@@ -619,7 +652,7 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 					if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
 					if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
 					if can == true then
-						game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = 99
+						game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
 					end
 				end
 				if table.find(toggledFeatures,"timeButton") then
