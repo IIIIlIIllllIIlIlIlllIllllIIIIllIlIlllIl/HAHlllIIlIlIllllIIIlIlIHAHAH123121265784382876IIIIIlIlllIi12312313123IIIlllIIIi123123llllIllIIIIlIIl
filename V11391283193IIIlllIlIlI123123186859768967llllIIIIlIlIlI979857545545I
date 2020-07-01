@@ -53,6 +53,19 @@ end
 
 local server = workspace:FindFirstChild("Server")
 
+local function setMana(amt)
+			pcall(function()
+				local can = true
+				if game.Players.LocalPlayer.Character == nil then can = false end
+				if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
+				if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
+				if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
+				if can == true then
+					game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
+				end
+			end)
+		end
+
 if server ~= nil then
 	local vip = server:FindFirstChild("VIP")
 	if vip ~= nil then
@@ -97,6 +110,23 @@ plr.CharacterAdded:Connect(function(curr)
 			char.Animate:FindFirstChild("Tween"):Destroy()
 		end
 	end
+	if newCon ~= nil then
+		newCon:Disconnect()
+	end
+	newCon = char.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+			if spells[child.Name] ~= nil then
+			currentTool = spells[child.Name]
+			if currentTool[1] ~= nil and snapToggled == false then
+				desiredMana = currentTool[1]
+				setMana(desiredMana)
+			elseif currentTool[2] ~= nil and snapToggled == true then
+				desiredMana = currentTool[2]
+				setMana(desiredMana)
+			end
+		end
+	end
+end)
 end)
 
 local client = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Client")
@@ -610,19 +640,6 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 			end
 		end)
 		
-		local function setMana(amt)
-			pcall(function()
-				local can = true
-				if game.Players.LocalPlayer.Character == nil then can = false end
-				if game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") == nil then can = false end
-				if game.Players.LocalPlayer.Character.Humanoid:FindFirstChild("Values") == nil then can = false end
-				if game.Players.LocalPlayer.Character.Humanoid.Values:FindFirstChild("Mana") == nil then can = false end
-				if can == true then
-					game.Players.LocalPlayer.Character.Humanoid.Values.Mana.Value = desiredMana
-				end
-			end)
-		end
-		
 		rS.RenderStepped:Connect(function()
 			if table.find(toggledFeatures,"pickupButton") and (tick()-lastPickup>0.1) then
 				lastPickup = tick()
@@ -658,21 +675,6 @@ enterCon = enterButton.MouseButton1Up:Connect(function()
 					end
 				end
 		end)
-		
-		char.ChildAdded:Connect(function(child)
-			if child:IsA("Tool") then
-			if spells[child.Name] ~= nil then
-			currentTool = spells[child.Name]
-			if currentTool[1] ~= nil and snapToggled == false then
-				desiredMana = currentTool[1]
-				setMana(desiredMana)
-			elseif currentTool[2] ~= nil and snapToggled == true then
-				desiredMana = currentTool[2]
-				setMana(desiredMana)
-			end
-		end
-	end
-end)
 		
 		uIS.InputBegan:Connect(function(key,blocked) 
 			if blocked then return end
