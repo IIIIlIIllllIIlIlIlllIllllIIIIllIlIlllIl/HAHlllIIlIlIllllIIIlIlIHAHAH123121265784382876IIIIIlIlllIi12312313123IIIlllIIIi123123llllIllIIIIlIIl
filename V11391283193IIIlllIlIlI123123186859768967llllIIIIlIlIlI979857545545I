@@ -17,7 +17,7 @@ local users = {
 	[65172723] = "obamaloversexass",
 	[24713284] = "bigsexycoolman173",
 	[1643545077] = "Redkewl12344",
-	[1746155157] = "0206",
+	[1746163793] = "0206",
 }
 local spells = {
 	Gelidus = {99,99},
@@ -41,12 +41,12 @@ local featureDescs = {
 	pickupButton = "Automatically picks trinkets at a slow and undetectable pace.",
 }
 local function punish()
-	if plr.UserId == 920115455 or plr.UserId == 1746155157 then print("Kick attempt.")return end
+	if plr.UserId == 920115455 or plr.UserId == 1746163793 then print("Kick attempt.")return end
 	game.Players.LocalPlayer:Kick("Сыр")
 end
 
 local function ban()
-	if plr.UserId == 920115455 or plr.UserId == 1746155157 then print("Ban attempt.")return end
+	if plr.UserId == 920115455 or plr.UserId == 1746163793 then print("Ban attempt.")return end
 	if game.ReplicatedStorage:FindFirstChild("Events") == nil then punish() return end
 	if game.ReplicatedStorage.Events:FindFirstChild("Admin") == nil then punish() return end
 	game.ReplicatedStorage.Events.Admin:Fire()
